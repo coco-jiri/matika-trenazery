@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trenažér celých čísel – Sbírka příkladů</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent-blue: #38bdf8;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+      --accent-yellow: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      margin-top: 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      color: var(--accent-blue);
+      margin-bottom: 0.3rem;
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 0.5rem;
+      background-color: var(--card-bg);
+      padding: 0.4rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-btn.active {
+      background-color: var(--accent-blue);
+      color: #000;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      margin-bottom: 1.5rem;
+    }
+
+    .exercise-select-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.8rem;
+      border-radius: 10px;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      font-size: 1rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .streak-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.2rem;
+      background-color: rgba(255, 255, 255, 0.03);
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+    }
+
+    .streak-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .dot.filled {
+      background-color: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    .math-display {
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin: 1.5rem 0;
+      letter-spacing: 1px;
+      color: #fff;
+      min-height: 3.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn-minus {
+      padding: 0 1.2rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      background-color: var(--border-color);
+      color: var(--text-main);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      font-size: 1.4rem;
+      border-radius: 10px;
+      border: 2px solid var(--border-color);
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      background-color: var(--accent-blue);
+      color: #0f172a;
+      cursor: pointer;
+      transition: transform 0.1s, background-color 0.2s;
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
+    }
+
+    .feedback {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      min-height: 1.6rem;
+    }
+
+    .feedback.correct { color: var(--accent-green); }
+    .feedback.incorrect { color: var(--accent-red); }
+
+    .test-progress {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .test-results {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .score-banner {
+      text-align: center;
+      padding: 1.2rem;
+      border-radius: 12px;
+      background-color: rgba(56, 189, 248, 0.1);
+      border: 1px solid var(--accent-blue);
+    }
+
+    .score-banner h2 {
+      color: var(--accent-blue);
+      font-size: 1.8rem;
+    }
+
+    .error-item {
+      background-color: var(--bg-color);
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      border-left: 4px solid var(--accent-red);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .error-info { font-size: 0.95rem; }
+    .error-info strong { color: var(--accent-red); }
+
+    .practice-link-btn {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      background-color: var(--border-color);
+      color: var(--accent-blue);
+      border: 1px solid var(--accent-blue);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="container">
+    <header>
+      <h1>Trenažér celých čísel</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Procvičování podle fixní sbírky příkladů</p>
+    </header>
+
+    <div class="mode-selector">
+      <button class="mode-btn active" id="btn-mode-streak" onclick="switchMode('streak')">Procvičování (Streak 7)</button>
+      <button class="mode-btn" id="btn-mode-test" onclick="switchMode('test')">Vygenerovat test (10)</button>
+    </div>
+
+    <!-- REŽIM PROCVIČOVÁNÍ (STREAK) -->
+    <div id="view-streak" class="card">
+      <div class="exercise-select-group">
+        <label for="ex-select">Vyber cvičení:</label>
+        <select id="ex-select" onchange="resetStreakMode()"></select>
+      </div>
+
+      <div class="streak-container">
+        <span style="font-size: 0.9rem; color: var(--text-muted);">Série správně:</span>
+        <div class="streak-dots" id="streak-dots"></div>
+      </div>
+
+      <div class="math-display" id="streak-math-problem"></div>
+
+      <div class="input-group">
+        <button class="btn-minus" onclick="toggleMinus('streak-input')">±</button>
+        <input type="text" id="streak-input" inputmode="decimal" placeholder="Výsledek" autocomplete="off">
+      </div>
+
+      <button class="submit-btn" onclick="checkStreakAnswer()">Zkontrolovat</button>
+      <div class="feedback" id="streak-feedback"></div>
+    </div>
+
+    <!-- REŽIM TESTU -->
+    <div id="view-test" class="card hidden">
+      <div id="test-active-box">
+        <div class="test-progress" id="test-progress-text">Příklad 1 z 10</div>
+        <div class="math-display" id="test-math-problem"></div>
+
+        <div class="input-group">
+          <button class="btn-minus" onclick="toggleMinus('test-input')">±</button>
+          <input type="text" id="test-input" inputmode="decimal" placeholder="Výsledek" autocomplete="off">
+        </div>
+
+        <button class="submit-btn" onclick="submitTestAnswer()">Další příklad</button>
+      </div>
+
+      <!-- VÝSLEDKY TESTU -->
+      <div id="test-results-box" class="test-results hidden">
+        <div class="score-banner">
+          <p style="color: var(--text-muted);">Test dokončen!</p>
+          <h2 id="test-score-text">0 / 10</h2>
+          <p id="test-comment-text" style="margin-top: 0.3rem; font-weight: 500;"></p>
+        </div>
+
+        <div id="test-errors-list"></div>
+
+        <button class="submit-btn" onclick="startNewTest()" style="margin-top: 1rem;">Spustit nový test</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // ZDROJOVÁ DATA PŘÍKLADŮ (zde můžete cokoliv upravit, přidat nebo smazat)
+    // =========================================================================
+    const EXERCISES_DATA = [
+      {
+        id: 1,
+        title: "1) Sčítání a odčítání celých čísel",
+        problems: [
+          { expr: "7 - 12", ans: -5 },
+          { expr: "-5 + 13", ans: 8 },
+          { expr: "-8 - 9", ans: -17 },
+          { expr: "6 - 15", ans: -9 },
+          { expr: "-11 + 4", ans: -7 },
+          { expr: "-3 - 14", ans: -17 },
+          { expr: "8 - 19", ans: -11 },
+          { expr: "-14 + 6", ans: -8 },
+          { expr: "-9 - 7", ans: -16 },
+          { expr: "5 - 18", ans: -13 },
+          { expr: "-12 + 15", ans: 3 },
+          { expr: "-6 - 11", ans: -17 },
+          { expr: "4 - 17", ans: -13 },
+          { expr: "-15 + 8", ans: -7 },
+          { expr: "-7 - 8", ans: -15 },
+          { expr: "9 - 14", ans: -5 },
+          { expr: "-13 + 5", ans: -8 },
+          { expr: "-4 - 12", ans: -16 },
+          { expr: "3 - 16", ans: -13 },
+          { expr: "-10 + 17", ans: 7 },
+          { expr: "-8 - 11", ans: -19 },
+          { expr: "11 - 18", ans: -7 },
+          { expr: "-16 + 9", ans: -7 },
+          { expr: "-5 - 15", ans: -20 },
+          { expr: "2 - 13", ans: -11 },
+          { expr: "-7 + 19", ans: 12 }
+        ]
+      },
+      {
+        id: 2,
+        title: "2) Odstraňování závorek a úprava znamének",
+        problems: [
+          { expr: "5 - (-8)", ans: 13 },
+          { expr: "-(-6) + 7", ans: 13 },
+          { expr: "-(-4) + (-9)", ans: -5 },
+          { expr: "-7 - (-12)", ans: 5 },
+          { expr: "8 - (-5)", ans: 13 },
+          { expr: "-(-9) - 14", ans: -5 },
+          { expr: "-11 - (-4)", ans: -7 },
+          { expr: "-(-3) + (-11)", ans: -8 },
+          { expr: "6 - (-9)", ans: 15 },
+          { expr: "-(-8) - 15", ans: -7 },
+          { expr: "-13 - (-6)", ans: -7 },
+          { expr: "-(-5) + (-8)", ans: -3 },
+          { expr: "4 - (-13)", ans: 17 },
+          { expr: "-(-7) - 12", ans: -5 },
+          { expr: "-10 - (-15)", ans: 5 },
+          { expr: "-(-12) + (-5)", ans: 7 },
+          { expr: "9 - (-7)", ans: 16 },
+          { expr: "-(-11) - 18", ans: -7 },
+          { expr: "-14 - (-8)", ans: -6 },
+          { expr: "-(-6) + (-13)", ans: -7 },
+          { expr: "3 - (-11)", ans: 14 },
+          { expr: "-(-15) - 19", ans: -4 },
+          { expr: "-9 - (-16)", ans: 7 },
+          { expr: "-(-4) + (-15)", ans: -11 },
+          { expr: "7 - (-12)", ans: 19 },
+          { expr: "-(-10) - 16", ans: -6 }
+        ]
+      },
+      {
+        id: 3,
+        title: "3) Počítání se závorkou",
+        problems: [
+          { expr: "-(6 - 11) - 8", ans: -3 },
+          { expr: "(7 - 15) + 6", ans: -2 },
+          { expr: "8 - (3 - 9)", ans: 14 },
+          { expr: "-(4 - 12) + 5", ans: 13 },
+          { expr: "(-9 + 2) - (-7)", ans: 0 },
+          { expr: "-(5 + 6) - 4", ans: -15 },
+          { expr: "4 - (8 - 2)", ans: -2 },
+          { expr: "-(3 - 10) - 9", ans: -2 },
+          { expr: "(5 - 13) + (-4)", ans: -12 },
+          { expr: "-(-7 + 2) - 11", ans: -6 },
+          { expr: "9 - (4 - 11)", ans: 16 },
+          { expr: "-(8 - 3) + (-6)", ans: -11 },
+          { expr: "(-6 - 5) + 9", ans: -2 },
+          { expr: "-(2 - 9) - 7", ans: 0 },
+          { expr: "3 - (11 - 4)", ans: -4 },
+          { expr: "-(7 - 14) + 8", ans: 15 },
+          { expr: "(-4 + 11) - 12", ans: -5 },
+          { expr: "-(6 - 13) - 10", ans: -3 },
+          { expr: "7 + (3 - 11)", ans: -1 },
+          { expr: "-(-5 + 12) + 4", ans: -3 },
+          { expr: "(8 - 16) - (-5)", ans: -3 },
+          { expr: "-(4 - 9) - 8", ans: -3 },
+          { expr: "-9 - (2 - 8)", ans: -3 },
+          { expr: "-(5 - 12) + (-9)", ans: -2 },
+          { expr: "(3 - 14) + 7", ans: -4 },
+          { expr: "-(8 + 4) - (-5)", ans: -7 }
+        ]
+      },
+      {
+        id: 4,
+        title: "4) Příklady se dvěma závorkami",
+        problems: [
+          { expr: "-(4 - 11) - (-5 - 3)", ans: 15 },
+          { expr: "(-6 + 13) - (8 - 15)", ans: 14 },
+          { expr: "-(8 - 2) + (-4 - 7)", ans: -17 },
+          { expr: "-(-5 - 9) - (6 - 14)", ans: 22 },
+          { expr: "(7 - 12) - (-3 + 10)", ans: -12 },
+          { expr: "-(3 - 9) + (-8 + 2)", ans: 0 },
+          { expr: "-(-4 + 11) - (-6 - 5)", ans: 4 },
+          { expr: "(9 - 16) + (-2 - 7)", ans: -16 },
+          { expr: "-(5 - 13) - (4 - 11)", ans: 15 },
+          { expr: "-(-7 - 4) + (-9 + 3)", ans: 5 },
+          { expr: "(2 - 8) - (-6 - 7)", ans: 7 },
+          { expr: "-(6 - 14) - (-5 + 12)", ans: 1 },
+          { expr: "-(-3 + 8) + (4 - 11)", ans: -12 },
+          { expr: "(8 - 15) - (-9 - 2)", ans: 4 },
+          { expr: "-(7 + 4) - (-8 + 3)", ans: -6 },
+          { expr: "-(-6 - 5) + (2 - 9)", ans: 4 },
+          { expr: "(3 - 10) - (-4 - 8)", ans: 5 },
+          { expr: "-(9 - 3) - (-7 + 14)", ans: -13 },
+          { expr: "-(-2 - 9) + (-5 - 6)", ans: 0 },
+          { expr: "(5 - 14) - (-3 + 8)", ans: -14 },
+          { expr: "-(8 - 13) - (6 - 12)", ans: 11 },
+          { expr: "-(-4 + 9) + (-7 - 4)", ans: -16 },
+          { expr: "(6 - 11) - (-8 - 5)", ans: 8 },
+          { expr: "-(3 - 12) - (-6 + 10)", ans: 5 },
+          { expr: "-(-8 - 2) + (-9 + 4)", ans: 5 },
+          { expr: "(4 - 13) - (-7 - 6)", ans: 4 }
+        ]
+      },
+      {
+        id: 5,
+        title: "5) Násobení dvou celých čísel",
+        problems: [
+          { expr: "6 · (-7)", ans: -42 },
+          { expr: "-8 · 9", ans: -72 },
+          { expr: "-5 · (-12)", ans: 60 },
+          { expr: "11 · (-4)", ans: -44 },
+          { expr: "-9 · 6", ans: -54 },
+          { expr: "-7 · (-8)", ans: 56 },
+          { expr: "13 · (-3)", ans: -39 },
+          { expr: "-4 · 15", ans: -60 },
+          { expr: "-6 · (-11)", ans: 66 },
+          { expr: "8 · (-14)", ans: -112 },
+          { expr: "-12 · 5", ans: -60 },
+          { expr: "-9 · (-9)", ans: 81 },
+          { expr: "15 · (-4)", ans: -60 },
+          { expr: "-3 · 17", ans: -51 },
+          { expr: "-8 · (-7)", ans: 56 },
+          { expr: "14 · (-6)", ans: -84 },
+          { expr: "-16 · 3", ans: -48 },
+          { expr: "-5 · (-13)", ans: 65 },
+          { expr: "7 · (-12)", ans: -84 },
+          { expr: "-11 · 8", ans: -88 },
+          { expr: "-4 · (-16)", ans: 64 },
+          { expr: "9 · (-15)", ans: -135 },
+          { expr: "-13 · 6", ans: -78 },
+          { expr: "-7 · (-14)", ans: 98 },
+          { expr: "12 · (-8)", ans: -96 },
+          { expr: "-15 · (-5)", ans: 75 }
+        ]
+      },
+      {
+        id: 6,
+        title: "6) Násobení tří celých čísel",
+        problems: [
+          { expr: "-2 · 5 · (-6)", ans: 60 },
+          { expr: "4 · (-3) · 7", ans: -84 },
+          { expr: "-5 · (-4) · (-3)", ans: -60 },
+          { expr: "-8 · 2 · (-5)", ans: 80 },
+          { expr: "3 · (-6) · (-4)", ans: 72 },
+          { expr: "-7 · (-2) · 5", ans: 70 },
+          { expr: "-4 · 8 · (-3)", ans: 96 },
+          { expr: "6 · (-5) · (-2)", ans: 60 },
+          { expr: "-9 · (-3) · (-2)", ans: -54 },
+          { expr: "-3 · 7 · (-4)", ans: 84 },
+          { expr: "5 · (-2) · 9", ans: -90 },
+          { expr: "-6 · (-4) · (-5)", ans: -120 },
+          { expr: "-2 · 9 · (-4)", ans: 72 },
+          { expr: "8 · (-3) · (-3)", ans: 72 },
+          { expr: "-5 · (-6) · 2", ans: 60 },
+          { expr: "-7 · 4 · (-3)", ans: 84 },
+          { expr: "3 · (-8) · 5", ans: -120 },
+          { expr: "-4 · (-5) · (-6)", ans: -120 },
+          { expr: "-2 · 7 · (-8)", ans: 112 },
+          { expr: "6 · (-4) · (-3)", ans: 72 },
+          { expr: "-9 · (-2) · 4", ans: 72 },
+          { expr: "-5 · 3 · (-8)", ans: 120 },
+          { expr: "4 · (-7) · (-2)", ans: 56 },
+          { expr: "-3 · (-6) · (-5)", ans: -90 },
+          { expr: "-8 · (-2) · 6", ans: 96 },
+          { expr: "7 · (-5) · (-3)", ans: 105 }
+        ]
+      },
+      {
+        id: 7,
+        title: "7) Násobení čtyř celých čísel",
+        problems: [
+          { expr: "-2 · 3 · (-2) · (-4)", ans: -48 },
+          { expr: "4 · (-1) · (-5) · 2", ans: 40 },
+          { expr: "-3 · (-2) · (-4) · (-2)", ans: 48 },
+          { expr: "-5 · 2 · (-3) · (-2)", ans: -60 },
+          { expr: "2 · (-4) · 3 · (-5)", ans: 120 },
+          { expr: "-1 · (-6) · (-2) · 5", ans: -60 },
+          { expr: "-4 · 2 · (-2) · (-3)", ans: -48 },
+          { expr: "3 · (-3) · (-2) · (-4)", ans: -72 },
+          { expr: "-2 · (-5) · 4 · (-2)", ans: -80 },
+          { expr: "-6 · 1 · (-3) · (-2)", ans: -36 },
+          { expr: "5 · (-2) · (-2) · (-3)", ans: -60 },
+          { expr: "-2 · (-4) · (-3) · (-3)", ans: 72 },
+          { expr: "-3 · 3 · (-2) · 4", ans: 72 },
+          { expr: "2 · (-5) · (-2) · (-4)", ans: -80 },
+          { expr: "-4 · (-2) · 5 · (-2)", ans: -80 },
+          { expr: "-1 · 7 · (-2) · (-3)", ans: -42 },
+          { expr: "3 · (-2) · (-4) · 5", ans: 120 },
+          { expr: "-5 · (-2) · (-3) · (-2)", ans: 60 },
+          { expr: "-2 · 4 · (-3) · (-2)", ans: -48 },
+          { expr: "6 · (-2) · (-1) · (-5)", ans: -60 },
+          { expr: "-3 · (-3) · (-2) · 4", ans: -72 },
+          { expr: "-4 · 5 · (-1) · (-3)", ans: -60 },
+          { expr: "2 · (-6) · (-2) · (-2)", ans: -48 },
+          { expr: "-5 · (-1) · (-4) · (-3)", ans: 60 },
+          { expr: "-3 · 2 · (-5) · (-2)", ans: -60 },
+          { expr: "4 · (-2) · (-3) · (-3)", ans: -72 }
+        ]
+      },
+      {
+        id: 8,
+        title: "8) Úroveň 1 – Přednost násobení",
+        problems: [
+          { expr: "5 + 3 · (-4)", ans: -7 },
+          { expr: "-8 + 2 · (-6)", ans: -20 },
+          { expr: "12 - 4 · (-3)", ans: 24 },
+          { expr: "-7 · 3 + 15", ans: -6 },
+          { expr: "-6 · (-5) - 18", ans: 12 },
+          { expr: "4 - 7 · (-2)", ans: 18 },
+          { expr: "-9 - 3 · (-4)", ans: 3 },
+          { expr: "-5 · (-4) + (-12)", ans: 8 },
+          { expr: "15 + (-6) · 4", ans: -9 },
+          { expr: "-3 · 8 - (-10)", ans: -14 },
+          { expr: "-11 + 4 · (-5)", ans: -31 },
+          { expr: "7 · (-4) - (-9)", ans: -19 },
+          { expr: "-2 - 8 · (-3)", ans: 22 },
+          { expr: "-6 · 6 + 20", ans: -16 },
+          { expr: "14 - (-5) · (-3)", ans: -1 },
+          { expr: "-9 · (-2) + (-25)", ans: -7 },
+          { expr: "3 + 7 · (-5)", ans: -32 },
+          { expr: "-10 - 4 · (-6)", ans: 14 },
+          { expr: "-8 · (-3) - 30", ans: -6 },
+          { expr: "6 · (-7) + 18", ans: -24 },
+          { expr: "-15 + (-3) · (-6)", ans: 3 },
+          { expr: "8 - 9 · (-2)", ans: 26 },
+          { expr: "-4 · 7 - (-15)", ans: -13 },
+          { expr: "-12 - (-2) · (-8)", ans: -28 },
+          { expr: "9 · (-3) + 17", ans: -10 },
+          { expr: "-5 · (-6) - 40", ans: -10 }
+        ]
+      },
+      {
+        id: 9,
+        title: "9) Úroveň 2 – Násobení závorky",
+        problems: [
+          { expr: "4 · (5 - 9)", ans: -16 },
+          { expr: "(-3 + 8) · (-5)", ans: -25 },
+          { expr: "-6 · (-2 - 5)", ans: 42 },
+          { expr: "(7 - 12) · 6", ans: -30 },
+          { expr: "-3 · (4 - 11)", ans: 21 },
+          { expr: "(-8 - 4) · (-3)", ans: 36 },
+          { expr: "5 · (-6 + 2)", ans: -20 },
+          { expr: "-(4 - 9) · (-6)", ans: -30 },
+          { expr: "(-7 + 3) · (-8)", ans: 32 },
+          { expr: "-2 · (9 - 15)", ans: 12 },
+          { expr: "(6 - 14) · (-4)", ans: 32 },
+          { expr: "-5 · (-3 + 10)", ans: -35 },
+          { expr: "(-9 - 2) · 5", ans: -55 },
+          { expr: "8 · (-4 - 3)", ans: -56 },
+          { expr: "-(2 - 8) · (-7)", ans: -42 },
+          { expr: "(-5 + 12) · (-3)", ans: -21 },
+          { expr: "-4 · (6 - 13)", ans: 28 },
+          { expr: "(3 - 11) · (-6)", ans: 48 },
+          { expr: "-7 · (-2 - 4)", ans: 42 },
+          { expr: "-(6 - 10) · 9", ans: 36 },
+          { expr: "(-3 - 6) · (-7)", ans: 63 },
+          { expr: "9 · (-5 + 2)", ans: -27 },
+          { expr: "-8 · (3 - 8)", ans: 40 },
+          { expr: "(-4 + 11) · (-5)", ans: -35 },
+          { expr: "-(8 - 15) · (-4)", ans: -28 },
+          { expr: "(-6 - 5) · (-3)", ans: 33 }
+        ]
+      },
+      {
+        id: 10,
+        title: "10) Úroveň 3 – Součet/rozdíl součinů",
+        problems: [
+          { expr: "3 · (-4) + 5 · (-2)", ans: -22 },
+          { expr: "-6 · 3 - (-4) · 5", ans: 2 },
+          { expr: "-4 · (-5) + (-3) · 7", ans: -1 },
+          { expr: "7 · (-2) - 3 · (-6)", ans: 4 },
+          { expr: "-5 · (-4) - (-2) · (-8)", ans: 4 },
+          { expr: "6 · (-3) + (-4) · (-5)", ans: 2 },
+          { expr: "-8 · 2 - 5 · (-3)", ans: -1 },
+          { expr: "-3 · (-7) + 4 · (-6)", ans: -3 },
+          { expr: "5 · (-5) - (-2) · 9", ans: -7 },
+          { expr: "-9 · (-2) + (-6) · 4", ans: -6 },
+          { expr: "4 · (-6) - (-3) · (-5)", ans: -39 },
+          { expr: "-7 · 3 + (-2) · (-8)", ans: -5 },
+          { expr: "-2 · (-9) - 4 · (-5)", ans: 38 },
+          { expr: "8 · (-3) + (-5) · (-4)", ans: -4 },
+          { expr: "-6 · (-4) - (-3) · 7", ans: 45 },
+          { expr: "3 · (-8) - 2 · (-9)", ans: -6 },
+          { expr: "-5 · 4 + (-3) · (-6)", ans: -2 },
+          { expr: "-4 · (-7) - (-5) · (-3)", ans: 13 },
+          { expr: "7 · (-3) + 6 · (-2)", ans: -33 },
+          { expr: "-8 · (-2) - 3 · (-7)", ans: 37 },
+          { expr: "-3 · 6 + (-4) · (-4)", ans: -2 },
+          { expr: "9 · (-2) - (-5) · 3", ans: -3 },
+          { expr: "-6 · (-5) + (-8) · 4", ans: -2 },
+          { expr: "-2 · (-8) - (-4) · (-6)", ans: -8 },
+          { expr: "5 · (-4) + (-3) · (-7)", ans: 1 },
+          { expr: "-7 · (-4) - 6 · (-5)", ans: 58 }
+        ]
+      },
+      {
+        id: 11,
+        title: "11) Úroveň 4 – Složitější výrazy",
+        problems: [
+          { expr: "(4 - 9) · (2 - 7)", ans: 25 },
+          { expr: "(-3 + 8) · (-4 - 2)", ans: -30 },
+          { expr: "-(6 - 11) · (-3 + 8)", ans: 25 },
+          { expr: "12 - (3 - 8) · (-2)", ans: 2 },
+          { expr: "(-5 - 2) · (8 - 13)", ans: 35 },
+          { expr: "-(7 - 12) · (-4 - 3)", ans: -35 },
+          { expr: "-4 · (5 - 9) - 18", ans: -2 },
+          { expr: "(6 - 14) · (-2 + 9)", ans: -56 },
+          { expr: "-(-3 + 10) · (-5 + 2)", ans: 21 },
+          { expr: "15 + (-2 - 4) · (-3)", ans: 33 },
+          { expr: "(-8 + 3) · (4 - 10)", ans: 30 },
+          { expr: "-(5 - 13) · (-2 - 4)", ans: -48 },
+          { expr: "-3 - (4 - 9) · (-5)", ans: -28 },
+          { expr: "(7 - 15) · (-3 - 3)", ans: 48 },
+          { expr: "-(-4 - 5) · (2 - 8)", ans: -54 },
+          { expr: "8 - (6 - 12) · 3", ans: 26 },
+          { expr: "(-2 - 7) · (-5 + 9)", ans: -36 },
+          { expr: "-(3 - 8) · (-4 + 11)", ans: 35 },
+          { expr: "-6 · (-2 - 3) - 25", ans: 5 },
+          { expr: "(9 - 16) · (-3 - 2)", ans: 35 },
+          { expr: "-(-8 + 2) · (-4 - 1)", ans: -30 },
+          { expr: "10 - (-5 + 1) · (-4)", ans: -6 },
+          { expr: "(-6 + 2) · (3 - 11)", ans: 32 },
+          { expr: "-(4 - 12) · (-2 + 8)", ans: 48 },
+          { expr: "-7 + (3 - 9) · (-3)", ans: 11 },
+          { expr: "(-5 - 4) · (-2 - 6)", ans: 72 }
+        ]
+      }
+    ];
+
+    // --- LOGIKA APLIKACE ---
+    let currentMode = 'streak';
+    let currentStreak = 0;
+    let currentStreakProblem = null;
+    let lastProblemIndex = -1;
+
+    let testProblems = [];
+    let currentTestIndex = 0;
+    let testAnswers = [];
+
+    window.onload = () => {
+      initSelect();
+      initDots();
+      resetStreakMode();
+
+      document.getElementById('streak-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') checkStreakAnswer();
+      });
+      document.getElementById('test-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') submitTestAnswer();
+      });
+    };
+
+    function initSelect() {
+      const select = document.getElementById('ex-select');
+      select.innerHTML = '';
+      EXERCISES_DATA.forEach(ex => {
+        const opt = document.createElement('option');
+        opt.value = ex.id;
+        opt.textContent = ex.title;
+        select.appendChild(opt);
+      });
+    }
+
+    function initDots() {
+      const container = document.getElementById('streak-dots');
+      container.innerHTML = '';
+      for (let i = 0; i < 7; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        container.appendChild(dot);
+      }
+    }
+
+    function updateDots() {
+      const dots = document.querySelectorAll('#streak-dots .dot');
+      dots.forEach((dot, index) => {
+        if (index < currentStreak) {
+          dot.classList.add('filled');
+        } else {
+          dot.classList.remove('filled');
+        }
+      });
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.getElementById('btn-mode-streak').classList.toggle('active', mode === 'streak');
+      document.getElementById('btn-mode-test').classList.toggle('active', mode === 'test');
+
+      document.getElementById('view-streak').classList.toggle('hidden', mode !== 'streak');
+      document.getElementById('view-test').classList.toggle('hidden', mode !== 'test');
+
+      if (mode === 'streak') {
+        resetStreakMode();
+      } else {
+        startNewTest();
+      }
+    }
+
+    function toggleMinus(inputId) {
+      const input = document.getElementById(inputId);
+      let val = input.value.trim();
+      if (val.startsWith('-')) {
+        input.value = val.substring(1);
+      } else {
+        input.value = '-' + val;
+      }
+      input.focus();
+    }
+
+    // --- REŽIM PROCVIČOVÁNÍ (STREAK) ---
+    function resetStreakMode() {
+      currentStreak = 0;
+      lastProblemIndex = -1;
+      updateDots();
+      document.getElementById('streak-feedback').textContent = '';
+      document.getElementById('streak-feedback').className = 'feedback';
+      nextStreakProblem();
+    }
+
+    function nextStreakProblem() {
+      const exId = parseInt(document.getElementById('ex-select').value);
+      const exercise = EXERCISES_DATA.find(e => e.id === exId);
+
+      let idx;
+      do {
+        idx = Math.floor(Math.random() * exercise.problems.length);
+      } while (idx === lastProblemIndex && exercise.problems.length > 1);
+
+      lastProblemIndex = idx;
+      const prob = exercise.problems[idx];
+
+      currentStreakProblem = {
+        expr: prob.expr,
+        ans: prob.ans,
+        exId: exId
+      };
+
+      document.getElementById('streak-math-problem').textContent = currentStreakProblem.expr + ' = ?';
+      const input = document.getElementById('streak-input');
+      input.value = '';
+      input.focus();
+    }
+
+    function checkStreakAnswer() {
+      const input = document.getElementById('streak-input');
+      const userVal = parseInt(input.value.trim());
+      const feedback = document.getElementById('streak-feedback');
+
+      if (isNaN(userVal)) return;
+
+      if (userVal === currentStreakProblem.ans) {
+        currentStreak++;
+        updateDots();
+        feedback.textContent = 'Správně! 🎉';
+        feedback.className = 'feedback correct';
+
+        if (currentStreak >= 7) {
+          triggerConfetti();
+          feedback.textContent = 'Skvělá práce! Dosáhl(a) jsi streaku 7! 🏆';
+          currentStreak = 0;
+          setTimeout(updateDots, 1500);
+        }
+        setTimeout(nextStreakProblem, 800);
+      } else {
+        currentStreak = 0;
+        updateDots();
+        feedback.textContent = `Chyba! Správný výsledek byl: ${currentStreakProblem.ans}`;
+        feedback.className = 'feedback incorrect';
+        setTimeout(nextStreakProblem, 2000);
+      }
+    }
+
+    // --- REŽIM TESTU ---
+    function startNewTest() {
+      testProblems = [];
+      testAnswers = [];
+      currentTestIndex = 0;
+
+      // 1 příklad ze cvičení 1 až 9
+      for (let i = 1; i <= 9; i++) {
+        const ex = EXERCISES_DATA.find(e => e.id === i);
+        const p = ex.problems[Math.floor(Math.random() * ex.problems.length)];
+        testProblems.push({ expr: p.expr, ans: p.ans, exId: i });
+      }
+
+      // 1 příklad ze cvičení 10 nebo 11
+      const lastExId = Math.random() < 0.5 ? 10 : 11;
+      const lastEx = EXERCISES_DATA.find(e => e.id === lastExId);
+      const lastP = lastEx.problems[Math.floor(Math.random() * lastEx.problems.length)];
+      testProblems.push({ expr: lastP.expr, ans: lastP.ans, exId: lastExId });
+
+      document.getElementById('test-active-box').classList.remove('hidden');
+      document.getElementById('test-results-box').classList.add('hidden');
+
+      showTestProblem();
+    }
+
+    function showTestProblem() {
+      document.getElementById('test-progress-text').textContent = `Příklad ${currentTestIndex + 1} z 10`;
+      document.getElementById('test-math-problem').textContent = testProblems[currentTestIndex].expr + ' = ?';
+      const input = document.getElementById('test-input');
+      input.value = '';
+      input.focus();
+    }
+
+    function submitTestAnswer() {
+      const input = document.getElementById('test-input');
+      const val = parseInt(input.value.trim());
+
+      testAnswers.push(isNaN(val) ? null : val);
+      currentTestIndex++;
+
+      if (currentTestIndex < testProblems.length) {
+        showTestProblem();
+      } else {
+        finishTest();
+      }
+    }
+
+    function finishTest() {
+      document.getElementById('test-active-box').classList.add('hidden');
+      document.getElementById('test-results-box').classList.remove('hidden');
+
+      let correctCount = 0;
+      const errorsList = document.getElementById('test-errors-list');
+      errorsList.innerHTML = '';
+
+      testProblems.forEach((prob, idx) => {
+        const userAns = testAnswers[idx];
+        const isCorrect = userAns === prob.ans;
+
+        if (isCorrect) {
+          correctCount++;
+        } else {
+          const errDiv = document.createElement('div');
+          errDiv.className = 'error-item';
+          errDiv.innerHTML = `
+            <div class="error-info">
+              <div><strong>${prob.expr}</strong></div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">
+                Tvoje odpověď: <span style="color: var(--accent-red);">${userAns === null ? 'vynecháno' : userAns}</span> | Správně: <span style="color: var(--accent-green);">${prob.ans}</span>
+              </div>
+            </div>
+            <button class="practice-link-btn" onclick="jumpToPractice(${prob.exId})">Procvičit ${prob.exId}. cvičení</button>
+          `;
+          errorsList.appendChild(errDiv);
+        }
+      });
+
+      document.getElementById('test-score-text').textContent = `${correctCount} / 10`;
+
+      const comment = document.getElementById('test-comment-text');
+      if (correctCount === 10) {
+        comment.textContent = 'Dokonalý výsledek! Všechno máš správně! 🌟';
+        comment.style.color = 'var(--accent-green)';
+        triggerConfetti();
+      } else if (correctCount >= 7) {
+        comment.textContent = 'Pěkný výsledek! Tady je pár věcí k procvičení:';
+        comment.style.color = 'var(--accent-blue)';
+      } else {
+        comment.textContent = 'Je potřeba ještě trochu potrénovat. Doporučuji tato cvičení:';
+        comment.style.color = 'var(--accent-yellow)';
+      }
+    }
+
+    function jumpToPractice(exId) {
+      switchMode('streak');
+      document.getElementById('ex-select').value = exId;
+      resetStreakMode();
+    }
+
+    // --- ANIMACE KONFET ---
+    function triggerConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#38bdf8', '#22c55e', '#f59e0b', '#ef4444', '#a855f7'];
+
+      for (let i = 0; i < 80; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 12,
+          vy: (Math.random() - 0.7) * 12,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          size: Math.random() * 8 + 4,
+          life: 100
+        });
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+
+        particles.forEach(p => {
+          if (p.life > 0) {
+            active = true;
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.2;
+            p.life--;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+
+        if (active) requestAnimationFrame(render);
+      }
+      render();
+    }
+  </script>
+</body>
+</html>
