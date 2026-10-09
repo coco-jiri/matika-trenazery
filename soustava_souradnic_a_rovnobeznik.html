@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trenažér analytické geometrie</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-inner: #0f172a;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #fbbf24;
+      --success: #22c55e;
+      --success-bg: rgba(34, 197, 94, 0.15);
+      --danger: #f87171;
+      --danger-bg: rgba(248, 113, 113, 0.15);
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 15px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      max-width: 500px;
+      padding: 25px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    h1 {
+      color: var(--text);
+      font-size: 1.6rem;
+      margin-bottom: 10px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+
+    .mode-btn {
+      background-color: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 16px 20px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 12px;
+      cursor: pointer;
+      width: 100%;
+      margin: 10px 0;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .mode-btn:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+    }
+
+    .streak-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .streak-star {
+      font-size: 2.2rem;
+      color: #334155;
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+
+    .streak-star.active {
+      color: var(--accent);
+      transform: scale(1.2);
+      filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6));
+    }
+
+    .task-card {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      padding: 20px;
+      border-radius: 15px;
+      font-size: 1.15rem;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      border-left: 5px solid var(--primary);
+      text-align: left;
+    }
+
+    .input-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .coord-input {
+      width: 80px;
+      height: 52px;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: bold;
+      background-color: var(--card-inner);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .coord-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-action {
+      background-color: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 12px;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-action:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-back {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-top: 15px;
+      text-decoration: underline;
+    }
+
+    .btn-back:hover {
+      color: var(--text);
+    }
+
+    .feedback {
+      margin-top: 15px;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: bold;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .feedback.success {
+      background-color: var(--success-bg);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .feedback.error {
+      background-color: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 380px;
+      width: 90%;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(5px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="container">
+    <!-- MENU SELECTION -->
+    <div id="screen-menu">
+      <h1>📐 Trenažér Souřadnic</h1>
+      <p class="subtitle">Vyber si režim tréninku. Cílem je získat 4 správné odpovědi v řadě!</p>
+      <button class="mode-btn" onclick="startTrainer('rovnobeznik')">🔷 Rovnoběžníky (Streak 4)</button>
+      <button class="mode-btn" onclick="startTrainer('stred')">📏 Střed úsečky (Streak 4)</button>
+    </div>
+
+    <!-- TRAINER SCREEN -->
+    <div id="screen-trainer" class="hidden">
+      <div class="streak-container">
+        <span class="streak-star" id="star-1">★</span>
+        <span class="streak-star" id="star-2">★</span>
+        <span class="streak-star" id="star-3">★</span>
+        <span class="streak-star" id="star-4">★</span>
+      </div>
+
+      <div class="task-card" id="task-text">
+        Zadání příkladu...
+      </div>
+
+      <div class="input-row">
+        <span id="target-label">D</span> = [
+        <input type="text" inputmode="decimal" id="input-x" class="coord-input" placeholder="x" autocomplete="off">
+        ;
+        <input type="text" inputmode="decimal" id="input-y" class="coord-input" placeholder="y" autocomplete="off">
+        ]
+      </div>
+
+      <button class="btn-action" id="btn-submit" onclick="checkAnswer()">Zkontrolovat</button>
+      <button class="btn-action hidden" id="btn-next" onclick="nextQuestion()">Další příklad ➔</button>
+
+      <div id="feedback" class="feedback"></div>
+
+      <button class="btn-back" onclick="showMenu()">← Zpět do nabídky</button>
+    </div>
+  </div>
+
+  <!-- CELEBRATION MODAL -->
+  <div id="modal-celebration" class="modal">
+    <div class="modal-content">
+      <div style="font-size: 3.8rem; margin-bottom: 10px;">🎉🏆🎉</div>
+      <h2 style="color: var(--text); margin-bottom: 10px;">Skvělá práce!</h2>
+      <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 20px;">Zvládl/a jsi 4 správné příklady v řadě za sebou!</p>
+      <button class="mode-btn" onclick="closeCelebration()">Pokračovat v tréninku</button>
+    </div>
+  </div>
+
+  <script>
+    // DATABÁZE PŘÍKLADŮ - ŠIKMÉ ROVNOBĚŽNÍKY S PROTI-SMĚRNOU ORIENTACÍ HODINOVÝCH RUČIČEK
+    const dataRovnobezniky = [
+      // Obdélníky (10 příkladů, pootočené, proti směru hod. ručiček)
+      { zadani: "Jsou dány body A[-5; -4], B[-2; -3], C[-4; 3]. Najdi bod D, aby ABCD byl rovnoběžník.", label: "D", res: [-7, 2] },
+      { zadani: "Jsou dány body K[-6; -5], L[-2; -3], M[-3; -1]. Najdi bod N, aby KLMN byl rovnoběžník.", label: "N", res: [-7, -3] },
+      { zadani: "Jsou dány body P[-5; -4], Q[-3; -3], R[-5; 1]. Najdi bod T, aby PQRT byl rovnoběžník.", label: "T", res: [-7, 0] },
+      { zadani: "Jsou dány body E[-7; -2], F[-3; -4], G[-1; 0]. Najdi bod H, aby EFGH byl rovnoběžník.", label: "H", res: [-5, 2] },
+      { zadani: "Jsou dány body T[-4; -5], U[-1; -3], V[-5; 3]. Najdi bod W, aby TUVW byl rovnoběžník.", label: "W", res: [-8, 1] },
+      { zadani: "Jsou dány body A[-6; -2], B[-3; -3], C[-1; 3]. Najdi bod D, aby ABCD byl rovnoběžník.", label: "D", res: [-4, 4] },
+      { zadani: "Jsou dány body O[-5; -4], P[-1; -3], Q[-3; 5]. Najdi bod R, aby OPQR byl rovnoběžník.", label: "R", res: [-7, 4] },
+      { zadani: "Jsou dány body K[-1; -5], L[0; -2], M[-6; 0]. Najdi bod N, aby KLMN byl rovnoběžník.", label: "N", res: [-7, -3] },
+      { zadani: "Jsou dány body A[-4; -1], B[-1; -2], C[1; 4]. Najdi bod D, aby ABCD byl rovnoběžník.", label: "D", res: [-2, 5] },
+      { zadani: "Jsou dány body X[-2; -5], Y[0; -2], Z[-6; 2]. Najdi bod W, aby XYZW byl rovnoběžník.", label: "W", res: [-8, -1] },
+      
+      // Čtverce (10 příkladů, pootočené, proti směru hod. ručiček)
+      { zadani: "Jsou dány body A[-6; -5], B[-3; -3], C[-5; 0]. Najdi bod D, aby ABCD byl čtverec.", label: "D", res: [-8, -2] },
+      { zadani: "Jsou dány body K[-7; -4], L[-3; -3], M[-4; 1]. Najdi bod N, aby KLMN byl čtverec.", label: "N", res: [-8, 0] },
+      { zadani: "Jsou dány body E[-5; -6], F[-3; -3], G[-6; -1]. Najdi bod H, aby EFGH byl čtverec.", label: "H", res: [-8, -4] },
+      { zadani: "Jsou dány body P[-4; -5], Q[-1; -4], R[-2; -1]. Najdi bod T, aby PQRT byl čtverec.", label: "T", res: [-5, -2] },
+      { zadani: "Jsou dány body T[-6; -3], U[-2; -1], V[-4; 3]. Najdi bod W, aby TUVW byl čtverec.", label: "W", res: [-8, 1] },
+      { zadani: "Jsou dány body A[-5; -1], B[-2; -3], C[0; 0]. Najdi bod D, aby ABCD byl čtverec.", label: "D", res: [-3, 2] },
+      { zadani: "Jsou dány body K[-3; -5], L[-2; -1], M[-6; 0]. Najdi bod N, aby KLMN byl čtverec.", label: "N", res: [-7, -4] },
+      { zadani: "Jsou dány body P[-4; -4], Q[-2; 0], R[-6; 2]. Najdi bod T, aby PQRT byl čtverec.", label: "T", res: [-8, -2] },
+      { zadani: "Jsou dány body E[-5; -5], F[-2; -2], G[-5; 1]. Najdi bod H, aby EFGH byl čtverec.", label: "H", res: [-8, -2] },
+      { zadani: "Jsou dány body X[-4; -3], Y[-2; -2], Z[-3; 0]. Najdi bod W, aby XYZW byl čtverec.", label: "W", res: [-5, -1] },
+      
+      // Kosočtverce (10 příkladů, pootočené, proti směru hod. ručiček)
+      { zadani: "Jsou dány body A[-6; -5], B[-3; -4], C[-2; -1]. Najdi bod D, aby ABCD byl kosočtverec.", label: "D", res: [-5, -2] },
+      { zadani: "Jsou dány body K[-7; -6], L[-3; -4], M[-1; 0]. Najdi bod N, aby KLMN byl kosočtverec.", label: "N", res: [-5, -2] },
+      { zadani: "Jsou dány body P[-5; -4], Q[-2; -2], R[0; 1]. Najdi bod T, aby PQRT byl kosočtverec.", label: "T", res: [-3, -1] },
+      { zadani: "Jsou dány body A[-6; -5], B[-2; -4], C[-1; 0]. Najdi bod D, aby ABCD byl kosočtverec.", label: "D", res: [-5, -1] },
+      { zadani: "Jsou dány body K[-7; -5], L[-3; -2], M[0; 2]. Najdi bod N, aby KLMN byl kosočtverec.", label: "N", res: [-4, -1] },
+      { zadani: "Jsou dány body P[-8; -6], Q[-3; -5], R[-2; 0]. Najdi bod T, aby PQRT byl kosočtverec.", label: "T", res: [-7, 1] },
+      { zadani: "Jsou dány body E[-4; -3], F[-1; -2], G[-4; -1]. Najdi bod H, aby EFGH byl kosočtverec.", label: "H", res: [-7, -2] },
+      { zadani: "Jsou dány body T[-5; -4], U[-1; -2], V[-5; 0]. Najdi bod W, aby TUVW byl kosočtverec.", label: "W", res: [-9, -2] },
+      { zadani: "Jsou dány body O[-5; -4], P[-1; -3], Q[0; 1]. Najdi bod R, aby OPQR byl kosočtverec.", label: "R", res: [-4, 0] },
+      { zadani: "Jsou dány body K[-5; -4], L[-1; -1], M[-5; 2]. Najdi bod N, aby KLMN byl kosočtverec.", label: "N", res: [-9, -1] },
+      
+      // Kosodélníky (10 příkladů, pootočené, proti směru hod. ručiček)
+      { zadani: "Jsou dány body A[-7; -5], B[-3; -4], C[-2; -1]. Najdi bod D, aby ABCD byl kosodélník.", label: "D", res: [-6, -2] },
+      { zadani: "Jsou dány body K[-6; -6], L[-3; -4], M[-2; 0]. Najdi bod N, aby KLMN byl kosodélník.", label: "N", res: [-5, -2] },
+      { zadani: "Jsou dány body P[-8; -5], Q[-3; -3], R[-1; 0]. Najdi bod T, aby PQRT byl kosodélník.", label: "T", res: [-6, -2] },
+      { zadani: "Jsou dány body E[-5; -4], F[-2; -3], G[-4; 1]. Najdi bod H, aby EFGH byl kosodélník.", label: "H", res: [-7, 0] },
+      { zadani: "Jsou dány body T[-6; -4], U[-2; -2], V[-3; 1]. Najdi bod W, aby TUVW byl kosodélník.", label: "W", res: [-7, -1] },
+      { zadani: "Jsou dány body O[-5; -1], P[-2; -2], Q[0; 2]. Najdi bod R, aby OPQR byl kosodélník.", label: "R", res: [-3, 3] },
+      { zadani: "Jsou dány body A[-7; -5], B[-3; -6], C[-1; -1]. Najdi bod D, aby ABCD byl kosodélník.", label: "D", res: [-5, 0] },
+      { zadani: "Jsou dány body K[-4; -4], L[-1; -2], M[-4; 2]. Najdi bod N, aby KLMN byl kosodélník.", label: "N", res: [-7, 0] },
+      { zadani: "Jsou dány body P[-5; -3], Q[-1; -2], R[-3; 1]. Najdi bod T, aby PQRT byl kosodélník.", label: "T", res: [-7, 0] },
+      { zadani: "Jsou dány body X[-6; -5], Y[-3; -6], Z[-1; -1]. Najdi bod W, aby XYZW byl kosodélník.", label: "W", res: [-4, 0] }
+    ];
+
+    const dataStredAB = [
+      { zadani: "Jsou dány body A[-8; -6] a B[-2; -2]. Najdi jejich střed S.", label: "S", res: [-5, -4] },
+      { zadani: "Jsou dány body K[-9; -5] a L[-3; -1]. Najdi jejich střed S.", label: "S", res: [-6, -3] },
+      { zadani: "Jsou dány body P[-7; -9] a Q[-1; -3]. Najdi jejich střed S.", label: "S", res: [-4, -6] },
+      { zadani: "Jsou dány body C[-6; -8] a D[-2; -2]. Najdi jejich střed S.", label: "S", res: [-4, -5] },
+      { zadani: "Jsou dány body E[-9; -3] a F[-1; -7]. Najdi jejich střed S.", label: "S", res: [-5, -5] },
+      { zadani: "Jsou dány body M[-8; -4] a N[-2; -2]. Najdi jejich střed S.", label: "S", res: [-5, -3] },
+      { zadani: "Jsou dány body U[-7; -5] a V[-3; -1]. Najdi jejich střed S.", label: "S", res: [-5, -3] },
+      { zadani: "Jsou dány body X[-6; -7] a Y[-2; -1]. Najdi jejich střed S.", label: "S", res: [-4, -4] },
+      { zadani: "Jsou dány body A[-3; 1] a B[3; -5]. Najdi jejich střed S.", label: "S", res: [0, -2] },
+      { zadani: "Jsou dány body K[-8; -4] a L[2; 6]. Najdi jejich střed S.", label: "S", res: [-3, 1] },
+      { zadani: "Jsou dány body P[-1; -3] a Q[5; 3]. Najdi jejich střed S.", label: "S", res: [2, 0] },
+      { zadani: "Jsou dány body C[-5; 5] a D[1; -1]. Najdi jejich střed S.", label: "S", res: [-2, 2] },
+      { zadani: "Jsou dány body E[-4; -6] a F[2; 2]. Najdi jejich střed S.", label: "S", res: [-1, -2] },
+      { zadani: "Jsou dány body M[-3; 7] a N[3; -3]. Najdi jejich střed S.", label: "S", res: [0, 2] },
+      { zadani: "Jsou dány body U[-6; -2] a V[4; 4]. Najdi jejich střed S.", label: "S", res: [-1, 1] },
+      { zadani: "Jsou dány body X[-2; -5] a Y[6; 1]. Najdi jejich střed S.", label: "S", res: [2, -2] },
+      { zadani: "Jsou dány body A[-5; 2] a B[1; -4]. Najdi jejich střed S.", label: "S", res: [-2, -1] },
+      { zadani: "Jsou dány body K[-3; -1] a L[5; 5]. Najdi jejich střed S.", label: "S", res: [1, 2] },
+      { zadani: "Jsou dány body P[-7; 3] a Q[3; -5]. Najdi jejich střed S.", label: "S", res: [-2, -1] },
+      { zadani: "Jsou dány body C[-1; -4] a D[7; 2]. Najdi jejich střed S.", label: "S", res: [3, -1] },
+      { zadani: "Jsou dány body E[-5; -5] a F[3; 1]. Najdi jejich střed S.", label: "S", res: [-1, -2] },
+      { zadani: "Jsou dány body M[-4; 6] a N[2; -2]. Najdi jejich střed S.", label: "S", res: [-1, 2] },
+      { zadani: "Jsou dány body U[-3; 3] a V[3; -7]. Najdi jejich střed S.", label: "S", res: [0, -2] },
+      { zadani: "Jsou dány body A[-1; -1] a B[4; 3]. Najdi jejich střed S.", label: "S", res: [1.5, 1] },
+      { zadani: "Jsou dány body K[-5; 2] a L[2; -3]. Najdi jejich střed S.", label: "S", res: [-1.5, -0.5] }
+    ];
+
+    const dataStredAS = [
+      { zadani: "Je dán bod A[-7; -5] a střed S[-4; -3]. Najdi bod B tak, aby S byl středem úsečky AB.", label: "B", res: [-1, -1] },
+      { zadani: "Je dán bod K[-8; -6] a střed S[-5; -4]. Najdi bod L tak, aby S byl středem úsečky KL.", label: "L", res: [-2, -2] },
+      { zadani: "Je dán bod P[-9; -7] a střed S[-5; -4]. Najdi bod Q tak, aby S byl středem úsečky PQ.", label: "Q", res: [-1, -1] },
+      { zadani: "Je dán bod C[-6; -8] a střed S[-4; -5]. Najdi bod D tak, aby S byl středem úsečky CD.", label: "D", res: [-2, -2] },
+      { zadani: "Je dán bod E[-7; -3] a střed S[-5; -2]. Najdi bod F tak, aby S byl středem úsečky EF.", label: "F", res: [-3, -1] },
+      { zadani: "Je dán bod M[-8; -5] a střed S[-6; -4]. Najdi bod N tak, aby S byl středem úsečky MN.", label: "N", res: [-4, -3] },
+      { zadani: "Je dán bod U[-9; -8] a střed S[-6; -5]. Najdi bod V tak, aby S byl středem úsečky UV.", label: "V", res: [-3, -2] },
+      { zadani: "Je dán bod X[-7; -6] a střed S[-5; -4]. Najdi bod Y tak, aby S byl středem úsečky XY.", label: "Y", res: [-3, -2] },
+      { zadani: "Je dán bod A[-5; 1] a střed S[-2; -2]. Najdi bod B tak, aby S byl středem úsečky AB.", label: "B", res: [1, -5] },
+      { zadani: "Je dán bod K[4; -3] a střed S[1; 0]. Najdi bod L tak, aby S byl středem úsečky KL.", label: "L", res: [-2, 3] },
+      { zadani: "Je dán bod P[-3; -2] a střed S[0; 1]. Najdi bod Q tak, aby S byl středem úsečky PQ.", label: "Q", res: [3, 4] },
+      { zadani: "Je dán bod C[2; -6] a střed S[-1; -2]. Najdi bod D tak, aby S byl středem úsečky CD.", label: "D", res: [-4, 2] },
+      { zadani: "Je dán bod E[-4; 5] a střed S[-1; 2]. Najdi bod F tak, aby S byl středem úsečky EF.", label: "F", res: [2, -1] },
+      { zadani: "Je dán bod M[-1; -5] a střed S[2; -1]. Najdi bod N tak, aby S byl středem úsečky MN.", label: "N", res: [5, 3] },
+      { zadani: "Je dán bod U[-5; 3] a střed S[-2; 0]. Najdi bod V tak, aby S byl středem úsečky UV.", label: "V", res: [1, -3] },
+      { zadani: "Je dán bod X[3; -2] a střed S[0; -1]. Najdi bod Y tak, aby S byl středem úsečky XY.", label: "Y", res: [-3, 0] },
+      { zadani: "Je dán bod A[-4; -1] a střed S[-1; 2]. Najdi bod B tak, aby S byl středem úsečky AB.", label: "B", res: [2, 5] },
+      { zadani: "Je dán bod K[1; -4] a střed S[-2; -1]. Najdi bod L tak, aby S byl středem úsečky KL.", label: "L", res: [-5, 2] },
+      { zadani: "Je dán bod P[-6; 2] a střed S[-3; -1]. Najdi bod Q tak, aby S byl středem úsečky PQ.", label: "Q", res: [0, -4] },
+      { zadani: "Je dán bod C[-2; -5] a střed S[1; -2]. Najdi bod D tak, aby S byl středem úsečky CD.", label: "D", res: [4, 1] },
+      { zadani: "Je dán bod E[5; -1] a střed S[1; 2]. Najdi bod F tak, aby S byl středem úsečky EF.", label: "F", res: [-3, 5] },
+      { zadani: "Je dán bod M[-3; 4] a střed S[0; 1]. Najdi bod N tak, aby S byl středem úsečky MN.", label: "N", res: [3, -2] },
+      { zadani: "Je dán bod U[-4; -3] a střed S[-1; 0]. Najdi bod V tak, aby S byl středem úsečky UV.", label: "V", res: [2, 3] },
+      { zadani: "Je dán bod X[2; -5] a střed S[-1; -2]. Najdi bod Y tak, aby S byl středem úsečky XY.", label: "Y", res: [-4, 1] },
+      { zadani: "Je dán bod A[-5; 3] a střed S[-1; -1]. Najdi bod B tak, aby S byl středem úsečky AB.", label: "B", res: [3, -5] }
+    ];
+
+    // STAV APLIKACE
+    let currentMode = '';
+    let streak = 0;
+    let currentTask = null;
+    let stredToggle = true;
+
+    function showMenu() {
+      document.getElementById('screen-menu').classList.remove('hidden');
+      document.getElementById('screen-trainer').classList.add('hidden');
+    }
+
+    function startTrainer(mode) {
+      currentMode = mode;
+      streak = 0;
+      stredToggle = Math.random() < 0.5;
+      updateStreakStars();
+
+      document.getElementById('screen-menu').classList.add('hidden');
+      document.getElementById('screen-trainer').classList.remove('hidden');
+
+      nextQuestion();
+    }
+
+    function updateStreakStars() {
+      for (let i = 1; i <= 4; i++) {
+        const star = document.getElementById(`star-${i}`);
+        if (i <= streak) {
+          star.classList.add('active');
+        } else {
+          star.classList.remove('active');
+        }
+      }
+    }
+
+    function getRandomItem(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function nextQuestion() {
+      document.getElementById('input-x').value = '';
+      document.getElementById('input-y').value = '';
+      document.getElementById('input-x').disabled = false;
+      document.getElementById('input-y').disabled = false;
+      document.getElementById('feedback').style.display = 'none';
+      document.getElementById('btn-submit').classList.remove('hidden');
+      document.getElementById('btn-next').classList.add('hidden');
+
+      if (currentMode === 'rovnobeznik') {
+        currentTask = getRandomItem(dataRovnobezniky);
+      } else {
+        if (stredToggle) {
+          currentTask = getRandomItem(dataStredAB);
+        } else {
+          currentTask = getRandomItem(dataStredAS);
+        }
+        stredToggle = !stredToggle;
+      }
+
+      document.getElementById('task-text').innerHTML = currentTask.zadani;
+      document.getElementById('target-label').innerText = currentTask.label;
+
+      document.getElementById('input-x').focus();
+    }
+
+    function checkAnswer() {
+      const rawX = document.getElementById('input-x').value.trim().replace(',', '.');
+      const rawY = document.getElementById('input-y').value.trim().replace(',', '.');
+
+      if (rawX === '' || rawY === '') {
+        alert('Vyplň prosím obě souřadnice!');
+        return;
+      }
+
+      const valX = parseFloat(rawX);
+      const valY = parseFloat(rawY);
+
+      const targetX = currentTask.res[0];
+      const targetY = currentTask.res[1];
+
+      const feedback = document.getElementById('feedback');
+      feedback.style.display = 'block';
+
+      if (valX === targetX && valY === targetY) {
+        // SPRÁVNĚ!
+        streak++;
+        updateStreakStars();
+
+        feedback.className = 'feedback success';
+        feedback.innerText = '✨ Výborně! Správná odpověď.';
+
+        document.getElementById('input-x').disabled = true;
+        document.getElementById('input-y').disabled = true;
+        document.getElementById('btn-submit').classList.add('hidden');
+
+        if (streak >= 4) {
+          setTimeout(triggerCelebration, 400);
+        } else {
+          launchMiniConfetti();
+          document.getElementById('btn-next').classList.remove('hidden');
+        }
+      } else {
+        // ŠPATNĚ
+        streak = 0;
+        updateStreakStars();
+
+        feedback.className = 'feedback error';
+        feedback.innerText = `Chyba! Správný výsledek je ${currentTask.label}[${targetX}; ${targetY}].`;
+
+        document.getElementById('input-x').disabled = true;
+        document.getElementById('input-y').disabled = true;
+        document.getElementById('btn-submit').classList.add('hidden');
+        document.getElementById('btn-next').classList.remove('hidden');
+      }
+    }
+
+    document.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        const btnSubmit = document.getElementById('btn-submit');
+        const btnNext = document.getElementById('btn-next');
+
+        if (!btnSubmit.classList.contains('hidden')) {
+          checkAnswer();
+        } else if (!btnNext.classList.contains('hidden')) {
+          nextQuestion();
+        }
+      }
+    });
+
+    function triggerCelebration() {
+      document.getElementById('modal-celebration').style.display = 'flex';
+      launchBigConfetti();
+    }
+
+    function closeCelebration() {
+      document.getElementById('modal-celebration').style.display = 'none';
+      streak = 0;
+      updateStreakStars();
+      nextQuestion();
+    }
+
+    function launchMiniConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#6366f1', '#fbbf24', '#38bdf8', '#f43f5e', '#a855f7'];
+
+      for (let i = 0; i < 35; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2 + 50,
+          vx: (Math.random() - 0.5) * 12,
+          vy: (Math.random() - 0.7) * 10,
+          size: Math.random() * 6 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          gravity: 0.3,
+          rotation: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 10
+        });
+      }
+
+      function renderMini() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let stillActive = false;
+
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.rotation += p.vRot;
+
+          if (p.y < canvas.height) stillActive = true;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        });
+
+        if (stillActive) {
+          requestAnimationFrame(renderMini);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      renderMini();
+    }
+
+    function launchBigConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#6366f1', '#fbbf24', '#38bdf8', '#f43f5e', '#a855f7', '#22c55e', '#e11d48'];
+
+      for (let i = 0; i < 160; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 20,
+          vy: (Math.random() - 0.7) * 20,
+          size: Math.random() * 9 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          gravity: 0.25,
+          rotation: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 12
+        });
+      }
+
+      function renderBig() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let stillActive = false;
+
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.rotation += p.vRot;
+
+          if (p.y < canvas.height) stillActive = true;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        });
+
+        if (stillActive && document.getElementById('modal-celebration').style.display === 'flex') {
+          requestAnimationFrame(renderBig);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      renderBig();
+    }
+  </script>
+</body>
+</html>
